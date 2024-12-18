@@ -1,0 +1,4 @@
+"0","set.seed(42)"
+"0","train_index <- createDataPartition(df$charges, p = 0.8, list = FALSE)"
+"0","train_data <- df[train_index, ]"
+"0","test_data <- df[-train_index, ]"

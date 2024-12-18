@@ -1,0 +1,6 @@
+"0",""
+"0","# Charges vs BMI"
+"0","ggplot(df, aes(x = bmi, y = charges, color = smoker)) +"
+"0","  geom_point(alpha = 0.5) +"
+"0","  labs(title = ""Charges vs BMI by Smoker Status"", x = ""BMI"", y = ""Charges"")"
+"0",""

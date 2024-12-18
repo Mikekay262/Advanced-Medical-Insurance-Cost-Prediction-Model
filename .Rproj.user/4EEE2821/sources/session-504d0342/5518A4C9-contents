@@ -1,0 +1,123 @@
+# File: insurance_model_comparison_app.R
+
+# Load required libraries
+library(shiny)
+library(ggplot2)
+library(dplyr)
+library(randomForest)
+library(xgboost)
+library(caret)
+
+# Load Data
+df <- read.csv("insurance.csv")
+
+# Data Preprocessing
+df$sex <- as.factor(df$sex)
+df$smoker <- as.factor(df$smoker)
+df$region <- as.factor(df$region)
+
+# Feature Engineering
+df$smoker_bmi <- ifelse(df$smoker == "yes", df$bmi, 0)
+df$age_squared <- df$age^2
+
+# Split data into train/test
+set.seed(42)
+train_index <- createDataPartition(df$charges, p = 0.8, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+# Train Models
+set.seed(42)
+
+# Linear Regression
+linear_model <- lm(charges ~ age_squared + children + smoker + region + smoker_bmi, data = train_data)
+
+# Random Forest
+rf_model <- randomForest(charges ~ ., data = train_data, importance = TRUE)
+
+# XGBoost
+train_matrix <- xgb.DMatrix(data = as.matrix(train_data[, c("age", "bmi", "children")]), label = train_data$charges)
+xgb_model <- xgboost(data = train_matrix, nrounds = 100, objective = "reg:squarederror", verbose = 0)
+
+# Shiny UI
+ui <- fluidPage(
+  titlePanel("Medical Insurance Cost Predictor - Model Comparison"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      h4("Enter Patient Details"),
+      numericInput("age", "Age", value = 25, min = 18, max = 100),
+      numericInput("bmi", "BMI", value = 25, min = 10, max = 50),
+      numericInput("children", "Number of Children", value = 0, min = 0, max = 10),
+      selectInput("smoker", "Smoker?", choices = c("yes", "no")),
+      selectInput("region", "Region", choices = c("southeast", "southwest", "northwest", "northeast")),
+      selectInput("model", "Select Model", choices = c("Linear Regression", "Random Forest", "XGBoost")),
+      actionButton("predict", "Predict Charges", class = "btn-primary")
+    ),
+    
+    mainPanel(
+      h3("Predicted Annual Medical Charges:"),
+      verbatimTextOutput("prediction"),
+      hr(),
+      h4("Feature Importance (Tree-based Models)"),
+      plotOutput("feature_importance")
+    )
+  )
+)
+
+# Shiny Server
+server <- function(input, output) {
+  
+  # Reactive Prediction
+  prediction_result <- eventReactive(input$predict, {
+    new_data <- data.frame(
+      age_squared = input$age^2,
+      bmi = input$bmi,
+      children = input$children,
+      smoker = input$smoker,
+      region = input$region,
+      smoker_bmi = ifelse(input$smoker == "yes", input$bmi, 0)
+    )
+    
+    # Select Model
+    if (input$model == "Linear Regression") {
+      predicted_value <- predict(linear_model, newdata = new_data)
+    } else if (input$model == "Random Forest") {
+      predicted_value <- predict(rf_model, newdata = new_data)
+    } else if (input$model == "XGBoost") {
+      xgb_new <- xgb.DMatrix(data = as.matrix(new_data[, c("age_squared", "bmi", "children")]))
+      predicted_value <- predict(xgb_model, xgb_new)
+    }
+    round(predicted_value, 2)
+  })
+  
+  output$prediction <- renderPrint({
+    paste("$", prediction_result())
+  })
+  
+  # Feature Importance
+  output$feature_importance <- renderPlot({
+    if (input$model == "Random Forest") {
+      importance <- importance(rf_model)
+      importance_df <- data.frame(Feature = rownames(importance), Importance = importance[, 1])
+      ggplot(importance_df, aes(x = reorder(Feature, Importance), y = Importance, fill = Feature)) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(title = "Feature Importance - Random Forest", y = "Importance") +
+        theme_minimal()
+    } else if (input$model == "XGBoost") {
+      importance_matrix <- xgb.importance(model = xgb_model)
+      ggplot(importance_matrix, aes(x = reorder(Feature, Gain), y = Gain, fill = Feature)) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(title = "Feature Importance - XGBoost", y = "Gain") +
+        theme_minimal()
+    } else {
+      plot.new() # Placeholder for Linear Regression
+      text(0.5, 0.5, "Feature importance not available for Linear Regression.", cex = 1.2)
+    }
+  })
+}
+
+# Run Shiny App
+shinyApp(ui = ui, server = server)

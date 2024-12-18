@@ -1,0 +1,3 @@
+"0","# Assessing model assumptions"
+"0","par(mfrow=c(2,2))"
+"0","plot(refined_model)"
