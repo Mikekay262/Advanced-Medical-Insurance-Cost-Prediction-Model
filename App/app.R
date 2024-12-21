@@ -11,7 +11,7 @@ check_and_install <- function(packages) {
 # List of required libraries
 required_packages <- c(
   "shiny", "shinydashboard", "shinyWidgets", "ggplot2",
-  "randomForest", "xgboost", "caret", "DALEX", "DALEXtra", "plotly"
+  "randomForest", "xgboost", "caret", "DALEX", "DALEXtra", "plotly", "dplyr"
 )
 
 # Check and install missing libraries
@@ -28,27 +28,136 @@ library(caret)
 library(DALEX)
 library(DALEXtra)
 library(plotly)
+library(dplyr)
 
 # Load trained models
 load("linear_model.RData")
 load("random_forest_model.RData")
 load("xgboost_model.RData")
-
-# Convert categorical variables to factors or dummy variables
-train_data$smoker <- factor(train_data$smoker, levels = c("no", "yes"))
-train_data$region <- factor(train_data$region, levels = c("northeast", "northwest", "southeast", "southwest"))
+dummy_model <- readRDS("dummy_model.rds") # Load dummy model
 
 
-# Convert data to numeric (excluding target variable)
-train_data_numeric <- data.frame(model.matrix(~ ., data = train_data)[, -1])  # Remove intercept column
+# Correct references to models and variables
+linear_model <- lm_model
+random_forest_model <- rf_optimized
+xgboost_model <- xgb_best
 
-# Create explainer
+# Prepare target variable
+y_target <- train_data$charges
+
+# Exclude the target variable for model input
+train_data_features <- train_data
+train_data_features$charges <- NULL
+
+# Convert categorical variables to dummy/one-hot encoding
+train_data_numeric <- model.matrix(~ . - 1, data = train_data_features)
+train_data_numeric <- as.matrix(train_data_numeric) # Ensure it's a matrix
+
+# Verify dimensions
+if (nrow(train_data_numeric) != length(y_target)) {
+  stop("Mismatch between feature matrix rows and target variable length.")
+}
+
+# Create XGBoost explainer
 xgb_explainer <- explain_xgboost(
-  model = xgb_best,
-  data = as.matrix(train_data_numeric[, -which(names(train_data_numeric) == "charges")]), # Exclude target variable
-  y = train_data$charges,
+  model = xgboost_model,
+  data = train_data_numeric,
+  y = y_target,
   label = "XGBoost"
 )
+
+# Separate preprocessing pipelines
+preprocess_data_xgb <- function(data, train_columns = xgb_best$feature_names) {
+  # Encode 'smoker' as 1 for 'yes' and 0 for 'no'
+  data <- data %>%
+    mutate(
+      smoker.yes = ifelse(smoker == "yes", 1, 0),       # Binary encode smoker
+      smoker_bmi = ifelse(smoker == "yes", bmi, 0),    # Derived feature
+      age_squared = age^2                              # Derived feature
+    )
+  
+  # One-hot encode 'region' with explicit columns for consistency
+  region_levels <- c("northwest", "southeast", "southwest")
+  for (region in region_levels) {
+    col_name <- paste0("region.", region)
+    data[[col_name]] <- ifelse(data$region == region, 1, 0)
+  }
+  data <- data %>% select(-region)  # Drop original 'region'
+  
+  # Handle 'sex' column (binary encoding for male)
+  if ("sex" %in% colnames(data)) {
+    data <- data %>%
+      mutate(sex.male = ifelse(sex == "male", 1, 0)) %>%
+      select(-sex)  # Drop original 'sex'
+  }
+  
+  # Ensure all required features are included
+  if (!is.null(train_columns)) {
+    # Add missing columns with default values of 0
+    missing_cols <- setdiff(train_columns, colnames(data))
+    if (length(missing_cols) > 0) {
+      data[missing_cols] <- 0
+    }
+    
+    # Remove extra columns not present in train_columns
+    extra_cols <- setdiff(colnames(data), train_columns)
+    if (length(extra_cols) > 0) {
+      data <- data[, train_columns, drop = FALSE]
+    }
+  }
+  
+  # Ensure all columns are numeric
+  data <- data %>% mutate(across(everything(), as.numeric))
+  
+  # Remove the target variable 'charges' for predictions if present
+  data$charges <- NULL
+  
+  # Arrange columns in the order of `train_columns`
+  data <- data[, train_columns[train_columns != "charges"], drop = FALSE]
+  
+  return(data)
+}
+preprocess_data_rf <- function(data) {
+  # Add derived features
+  data$smoker_bmi <- ifelse(data$smoker == "yes", data$bmi, 0)
+  data$age_squared <- data$age^2
+  
+  # Ensure categorical variables are factors with consistent levels
+  data$smoker <- factor(data$smoker, levels = c("yes", "no"))
+  data$region <- factor(data$region, levels = c("northeast", "northwest", "southeast", "southwest"))
+  
+  # Random Forest works with raw data frames, no need for encoding
+  return(data)
+}
+
+# Updated predict_cost function
+predict_cost <- function(input_data, xgb_model, rf_model, lm_model, dummy_model, model_type = "xgboost") {
+  # Preprocess input data based on model type
+  if (model_type == "xgboost") {
+    preprocessed_data <- preprocess_data_xgb(input_data)
+  } else if (model_type == "random_forest") {
+    preprocessed_data <- preprocess_data_rf(input_data)
+  } else if (model_type == "dummy") {
+    preprocessed_data <- preprocess_data_xgb(input_data)
+  } else {
+    preprocessed_data <- input_data
+  }
+  
+  # Predict using the selected model
+  if (model_type == "xgboost") {
+    prediction <- predict(xgb_model, as.matrix(preprocessed_data))
+  } else if (model_type == "random_forest") {
+    prediction <- predict(rf_model, preprocessed_data)
+  } else if (model_type == "linear_model") {
+    prediction <- predict(lm_model, input_data)
+  } else if (model_type == "dummy") {
+    prediction <- predict(dummy_model, newdata = preprocessed_data)
+  } else {
+    stop("Invalid model type. Choose either 'xgboost', 'random_forest', 'linear_model', or 'dummy'.")
+  }
+  
+  return(prediction)
+}
 
 
 # UI Section
@@ -89,6 +198,7 @@ ui <- dashboardPage(
             width = 6,
             status = "info",
             numericInput("age", "Age:", value = 30, min = 18, max = 64, step = 1),
+            selectInput("sex", "Sex:", choices = c("male", "female")),
             numericInput("bmi", "BMI:", value = 25, min = 15, max = 55, step = 0.1),
             numericInput("children", "Number of Children:", value = 0, min = 0, max = 5, step = 1),
             selectInput("smoker", "Smoker:", choices = c("yes", "no")),
@@ -152,11 +262,12 @@ ui <- dashboardPage(
 # Server Section
 server <- function(input, output, session) {
   # Predict function
-  predict_cost <- reactive({
+  predict_cost_output <- reactive({
     req(input$predict)
     
     user_data <- data.frame(
       age = input$age,
+      sex = input$sex,
       bmi = input$bmi,
       children = input$children,
       smoker = input$smoker,
@@ -170,57 +281,28 @@ server <- function(input, output, session) {
     model <- switch(input$model_choice,
                     "Linear Regression" = linear_model,
                     "Random Forest" = random_forest_model,
-                    "XGBoost" = xgb_best
+                    "XGBoost" = xgboost_model
     )
     
-    prediction <- if (input$model_choice == "XGBoost") {
-      predict(model, as.matrix(user_data))
-    } else {
-      predict(model, user_data)
-    }
+    # Map model choice to model_type for predict_cost function
+    model_type <- switch(input$model_choice,
+                         "Linear Regression" = "linear_model",
+                         "Random Forest" = "random_forest",
+                         "XGBoost" = "xgboost")
+    
+    # Corrected function call: Removed encoder argument
+    prediction <- predict_cost(user_data,
+                               xgb_model = xgboost_model, 
+                               rf_model = random_forest_model, 
+                               lm_model = linear_model, 
+                               model_type = model_type)
     return(prediction)
   })
   
   # Render prediction
   output$prediction <- renderText({
-    cost <- predict_cost()
+    cost <- predict_cost_output()
     paste("Predicted Medical Cost: $", round(cost, 2))
-  })
-  
-  # Model comparison plot
-  output$modelComparisonPlot <- renderPlotly({
-    model_results <- data.frame(
-      Model = c("Linear Regression", "Random Forest", "XGBoost"),
-      RMSE = c(5408.64, 5189.68, 76.42)
-    )
-    p <- ggplot(model_results, aes(x = reorder(Model, RMSE), y = RMSE, fill = Model)) +
-      geom_bar(stat = "identity") +
-      coord_flip() +
-      labs(title = "Model RMSE Comparison", x = "Model", y = "RMSE")
-    ggplotly(p)
-  })
-  
-  # SHAP visualizations
-  output$shapPlot <- renderPlot({
-    req(input$shap_type)
-    if (input$shap_type == "Feature Importance") {
-      plot(model_parts(xgb_explainer)) # SHAP feature importance
-    } else if (input$shap_type == "Individual Explanation") {
-      user_data <- data.frame(
-        age = input$age,
-        bmi = input$bmi,
-        children = input$children,
-        smoker = input$smoker,
-        region = input$region
-      )
-      
-      # Add engineered features
-      user_data$smoker_bmi <- ifelse(user_data$smoker == "yes", user_data$bmi, 0)
-      user_data$age_squared <- user_data$age^2
-      
-      shap_values <- predict_parts(xgb_explainer, new_observation = user_data)
-      plot(shap_values)
-    }
   })
 }
 

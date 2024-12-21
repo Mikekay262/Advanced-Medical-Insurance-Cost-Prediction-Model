@@ -3,12 +3,12 @@ title: " Advanced Medical Insurance Cost Prediction Model II"
 author: "Dr. Michael Adu"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    toc: yes
-    latex_engine: xelatex
   html_document:
     toc: yes
     toc_float: yes
+  pdf_document:
+    toc: yes
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
@@ -117,6 +117,9 @@ set.seed(42)
 train_index <- createDataPartition(df$charges, p = 0.8, list = FALSE)
 train_data <- df[train_index, ]
 test_data <- df[-train_index, ]
+```
+```{r}
+save(train_data, file = "train_data.RData")
 ```
 
 
@@ -494,6 +497,11 @@ xgb_predictions <- predict(xgb_best, xgb_test)
 xgb_rmse <- sqrt(mean((test_data$charges - xgb_predictions)^2))
 cat("Optimized XGBoost RMSE:", xgb_rmse, "\n")
 
+
+```
+```{r}
+# Save the dummyVars object after creating it
+saveRDS(dummy_model, "dummy_model.rds")
 
 ```
 

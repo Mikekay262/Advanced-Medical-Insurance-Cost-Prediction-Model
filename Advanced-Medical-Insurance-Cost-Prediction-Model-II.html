@@ -11,7 +11,7 @@
 
 <meta name="author" content="Dr. Michael Adu" />
 
-<meta name="date" content="2024-12-18" />
+<meta name="date" content="2024-12-21" />
 
 <title>Advanced Medical Insurance Cost Prediction Model II</title>
 
@@ -1482,7 +1482,7 @@ border-radius: 0px;
 <h1 class="title toc-ignore">Advanced Medical Insurance Cost Prediction
 Model II</h1>
 <h4 class="author">Dr. Michael Adu</h4>
-<h4 class="date">2024-12-18</h4>
+<h4 class="date">2024-12-21</h4>
 
 </div>
 
@@ -1611,6 +1611,7 @@ data.</p>
 train_index &lt;- createDataPartition(df$charges, p = 0.8, list = FALSE)
 train_data &lt;- df[train_index, ]
 test_data &lt;- df[-train_index, ]</code></pre>
+<pre class="r"><code>save(train_data, file = &quot;train_data.RData&quot;)</code></pre>
 </div>
 <div id="exploratory-data-analysis" class="section level3">
 <h3>2.4 Exploratory Data Analysis</h3>
@@ -1840,6 +1841,8 @@ rmse_refined &lt;- sqrt(mean((predicted_values - actual_values)^2))
 
 cat(&quot;Refined Model RMSE:&quot;, rmse_refined, &quot;\n&quot;)</code></pre>
 <pre><code>## Refined Model RMSE: 4637.44</code></pre>
+<p>Save the refined model:</p>
+<pre class="r"><code>save(refined_model, file = &quot;linear_model.RData&quot;)</code></pre>
 <pre class="r"><code># Assessing model assumptions
 par(mfrow=c(2,2))
 plot(refined_model)</code></pre>
@@ -1909,31 +1912,31 @@ rf_bo &lt;- BayesianOptimization(
   n_iter = 20,
   acq = &quot;ucb&quot;
 )</code></pre>
-<pre><code>## elapsed = 2.37   Round = 1   mtry = 5.0000   min_node_size = 10.0000 Value = -5288.5540 
-## elapsed = 2.27   Round = 2   mtry = 5.0000   min_node_size = 12.0000 Value = -5276.7645 
-## elapsed = 1.84   Round = 3   mtry = 3.0000   min_node_size = 6.0000  Value = -5295.0543 
-## elapsed = 1.72   Round = 4   mtry = 4.0000   min_node_size = 12.0000 Value = -5269.7620 
-## elapsed = 1.79   Round = 5   mtry = 4.0000   min_node_size = 12.0000 Value = -5255.5042 
-## elapsed = 1.31   Round = 6   mtry = 2.0000   min_node_size = 12.0000 Value = -5175.6109 
-## elapsed = 1.59   Round = 7   mtry = 2.0000   min_node_size = 5.0000  Value = -5195.7240 
-## elapsed = 0.82   Round = 8   mtry = 2.0000   min_node_size = 14.0000 Value = -5184.0545 
-## elapsed = 1.02   Round = 9   mtry = 2.0000   min_node_size = 10.0000 Value = -5190.2363 
-## elapsed = 0.89   Round = 10  mtry = 2.0000   min_node_size = 12.0000 Value = -5206.5339 
-## elapsed = 1.03   Round = 11  mtry = 2.0000   min_node_size = 12.0000 Value = -5173.1805 
-## elapsed = 0.92   Round = 12  mtry = 2.0000   min_node_size = 12.0000 Value = -5187.9912 
-## elapsed = 0.89   Round = 13  mtry = 2.0000   min_node_size = 12.0000 Value = -5191.4101 
-## elapsed = 0.94   Round = 14  mtry = 2.0000   min_node_size = 12.0000 Value = -5180.6849 
-## elapsed = 1.05   Round = 15  mtry = 2.0000   min_node_size = 12.0000 Value = -5173.3701 
-## elapsed = 0.97   Round = 16  mtry = 2.0000   min_node_size = 12.0000 Value = -5185.2254 
-## elapsed = 0.92   Round = 17  mtry = 2.0000   min_node_size = 12.0000 Value = -5189.3970 
-## elapsed = 0.89   Round = 18  mtry = 2.0000   min_node_size = 12.0000 Value = -5162.4277 
-## elapsed = 0.95   Round = 19  mtry = 2.0000   min_node_size = 12.0000 Value = -5183.1236 
-## elapsed = 0.92   Round = 20  mtry = 2.0000   min_node_size = 12.0000 Value = -5164.5908 
-## elapsed = 0.91   Round = 21  mtry = 2.0000   min_node_size = 12.0000 Value = -5191.8742 
-## elapsed = 1.03   Round = 22  mtry = 2.0000   min_node_size = 12.0000 Value = -5185.4855 
-## elapsed = 0.97   Round = 23  mtry = 2.0000   min_node_size = 12.0000 Value = -5182.5062 
-## elapsed = 1.04   Round = 24  mtry = 2.0000   min_node_size = 12.0000 Value = -5172.3029 
-## elapsed = 0.86   Round = 25  mtry = 2.0000   min_node_size = 12.0000 Value = -5181.5966 
+<pre><code>## elapsed = 3.36   Round = 1   mtry = 5.0000   min_node_size = 10.0000 Value = -5288.5540 
+## elapsed = 2.19   Round = 2   mtry = 5.0000   min_node_size = 12.0000 Value = -5276.7645 
+## elapsed = 1.62   Round = 3   mtry = 3.0000   min_node_size = 6.0000  Value = -5295.0543 
+## elapsed = 1.73   Round = 4   mtry = 4.0000   min_node_size = 12.0000 Value = -5269.7620 
+## elapsed = 1.60   Round = 5   mtry = 4.0000   min_node_size = 12.0000 Value = -5255.5042 
+## elapsed = 1.03   Round = 6   mtry = 2.0000   min_node_size = 12.0000 Value = -5175.6109 
+## elapsed = 1.48   Round = 7   mtry = 2.0000   min_node_size = 5.0000  Value = -5195.7240 
+## elapsed = 0.95   Round = 8   mtry = 2.0000   min_node_size = 14.0000 Value = -5184.0545 
+## elapsed = 0.84   Round = 9   mtry = 2.0000   min_node_size = 10.0000 Value = -5190.2363 
+## elapsed = 0.81   Round = 10  mtry = 2.0000   min_node_size = 12.0000 Value = -5206.5339 
+## elapsed = 0.89   Round = 11  mtry = 2.0000   min_node_size = 12.0000 Value = -5173.1805 
+## elapsed = 0.87   Round = 12  mtry = 2.0000   min_node_size = 12.0000 Value = -5187.9912 
+## elapsed = 1.00   Round = 13  mtry = 2.0000   min_node_size = 12.0000 Value = -5191.4101 
+## elapsed = 0.84   Round = 14  mtry = 2.0000   min_node_size = 12.0000 Value = -5180.6849 
+## elapsed = 1.00   Round = 15  mtry = 2.0000   min_node_size = 12.0000 Value = -5173.3701 
+## elapsed = 0.78   Round = 16  mtry = 2.0000   min_node_size = 12.0000 Value = -5185.2254 
+## elapsed = 1.08   Round = 17  mtry = 2.0000   min_node_size = 12.0000 Value = -5189.3970 
+## elapsed = 0.78   Round = 18  mtry = 2.0000   min_node_size = 12.0000 Value = -5162.4277 
+## elapsed = 0.86   Round = 19  mtry = 2.0000   min_node_size = 12.0000 Value = -5183.1236 
+## elapsed = 0.88   Round = 20  mtry = 2.0000   min_node_size = 12.0000 Value = -5164.5908 
+## elapsed = 0.95   Round = 21  mtry = 2.0000   min_node_size = 12.0000 Value = -5191.8742 
+## elapsed = 0.83   Round = 22  mtry = 2.0000   min_node_size = 12.0000 Value = -5185.4855 
+## elapsed = 1.55   Round = 23  mtry = 2.0000   min_node_size = 12.0000 Value = -5182.5062 
+## elapsed = 1.18   Round = 24  mtry = 2.0000   min_node_size = 12.0000 Value = -5172.3029 
+## elapsed = 0.89   Round = 25  mtry = 2.0000   min_node_size = 12.0000 Value = -5181.5966 
 ## 
 ##  Best Parameters Found: 
 ## Round = 18   mtry = 2.0000   min_node_size = 12.0000 Value = -5162.4277</code></pre>
@@ -1948,6 +1951,8 @@ rf_predictions_optimized &lt;- predict(rf_optimized, test_data)
 rf_rmse_optimized &lt;- calc_rmse(test_data$charges, rf_predictions_optimized)
 cat(&quot;Optimized Random Forest RMSE:&quot;, rf_rmse_optimized, &quot;\n&quot;)</code></pre>
 <pre><code>## Optimized Random Forest RMSE: 5189.678</code></pre>
+<p>Save the random forest model</p>
+<pre class="r"><code>save(rf_optimized, file = &quot;random_forest_model.RData&quot;)</code></pre>
 </div>
 <div id="xgboost-with-bayesian-optimization" class="section level3">
 <h3>3.3 XGBoost with Bayesian Optimization</h3>
@@ -2029,31 +2034,31 @@ xgb_bo &lt;- BayesianOptimization(
   n_iter = 20,
   acq = &quot;ucb&quot;
 )</code></pre>
-<pre><code>## elapsed = 7.50   Round = 1   max_depth = 9.0000  eta = 0.1605378 subsample = 0.8373225   colsample_bytree = 0.9820044    Value = -154.6936 
-## elapsed = 3.99   Round = 2   max_depth = 10.0000 eta = 0.2236106 subsample = 0.9157337   colsample_bytree = 0.9934679    Value = -228.0648 
-## elapsed = 6.69   Round = 3   max_depth = 5.0000  eta = 0.04905331    subsample = 0.9804017   colsample_bytree = 0.7352462    Value = -591.5660 
-## elapsed = 4.01   Round = 4   max_depth = 9.0000  eta = 0.2005278 subsample = 0.7766286   colsample_bytree = 0.8424991    Value = -377.7979 
-## elapsed = 9.21   Round = 5   max_depth = 7.0000  eta = 0.2144688 subsample = 0.8386878   colsample_bytree = 0.8680998    Value = -489.4881 
-## elapsed = 9.25   Round = 6   max_depth = 9.0000  eta = 0.0100    subsample = 0.9909259   colsample_bytree = 0.9445517    Value = -447.6260 
-## elapsed = 2.59   Round = 7   max_depth = 3.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 1.0000   Value = -381.5564 
-## elapsed = 9.66   Round = 8   max_depth = 9.0000  eta = 0.06766773    subsample = 0.813348    colsample_bytree = 1.0000   Value = -115.5309 
-## elapsed = 2.30   Round = 9   max_depth = 10.0000 eta = 0.2517071 subsample = 0.7000  colsample_bytree = 0.9848041    Value = -287.5922 
-## elapsed = 3.36   Round = 10  max_depth = 10.0000 eta = 0.3000    subsample = 0.9932048   colsample_bytree = 0.7874764    Value = -1325.5548 
-## elapsed = 2.47   Round = 11  max_depth = 9.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.7000   Value = -669.0375 
-## elapsed = 4.25   Round = 12  max_depth = 3.0000  eta = 0.0100    subsample = 0.7000  colsample_bytree = 0.7000   Value = -1271.0771 
-## elapsed = 2.41   Round = 13  max_depth = 9.0000  eta = 0.3000    subsample = 0.9838869   colsample_bytree = 0.9178851    Value = -224.9772 
-## elapsed = 4.22   Round = 14  max_depth = 3.0000  eta = 0.0100    subsample = 0.91239 colsample_bytree = 0.9035874    Value = -789.2112 
-## elapsed = 5.55   Round = 15  max_depth = 5.0000  eta = 0.3000    subsample = 0.9349806   colsample_bytree = 0.9428715    Value = -408.3555 
-## elapsed = 8.04   Round = 16  max_depth = 7.0000  eta = 0.0100    subsample = 0.764681    colsample_bytree = 0.8401223    Value = -657.1144 
-## elapsed = 7.02   Round = 17  max_depth = 6.0000  eta = 0.0100    subsample = 0.935249    colsample_bytree = 0.9840084    Value = -420.3384 
-## elapsed = 10.58  Round = 18  max_depth = 10.0000 eta = 0.0100    subsample = 0.9794313   colsample_bytree = 0.8804068    Value = -645.3962 
-## elapsed = 4.34   Round = 19  max_depth = 10.0000 eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.893692 Value = -644.3185 
-## elapsed = 2.22   Round = 20  max_depth = 8.0000  eta = 0.3000    subsample = 0.9905041   colsample_bytree = 1.0000   Value = -247.0145 
-## elapsed = 5.28   Round = 21  max_depth = 7.0000  eta = 0.2894137 subsample = 0.9933751   colsample_bytree = 0.9129171    Value = -245.2481 
-## elapsed = 4.27   Round = 22  max_depth = 3.0000  eta = 0.0100    subsample = 0.7000  colsample_bytree = 0.9769014    Value = -526.1476 
-## elapsed = 2.35   Round = 23  max_depth = 3.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.7929499    Value = -562.9228 
-## elapsed = 5.48   Round = 24  max_depth = 10.0000 eta = 0.2146027 subsample = 0.7881165   colsample_bytree = 1.0000   Value = -234.0391 
-## elapsed = 1.85   Round = 25  max_depth = 7.0000  eta = 0.297981  subsample = 0.8150998   colsample_bytree = 0.9463932    Value = -706.6844 
+<pre><code>## elapsed = 7.38   Round = 1   max_depth = 9.0000  eta = 0.1605378 subsample = 0.8373225   colsample_bytree = 0.9820044    Value = -154.6936 
+## elapsed = 3.64   Round = 2   max_depth = 10.0000 eta = 0.2236106 subsample = 0.9157337   colsample_bytree = 0.9934679    Value = -228.0648 
+## elapsed = 5.78   Round = 3   max_depth = 5.0000  eta = 0.04905331    subsample = 0.9804017   colsample_bytree = 0.7352462    Value = -591.5660 
+## elapsed = 3.47   Round = 4   max_depth = 9.0000  eta = 0.2005278 subsample = 0.7766286   colsample_bytree = 0.8424991    Value = -377.7979 
+## elapsed = 7.84   Round = 5   max_depth = 7.0000  eta = 0.2144688 subsample = 0.8386878   colsample_bytree = 0.8680998    Value = -489.4881 
+## elapsed = 14.09  Round = 6   max_depth = 9.0000  eta = 0.0100    subsample = 0.9909259   colsample_bytree = 0.9445517    Value = -447.6260 
+## elapsed = 23.73  Round = 7   max_depth = 3.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 1.0000   Value = -381.5564 
+## elapsed = 10.07  Round = 8   max_depth = 9.0000  eta = 0.06766773    subsample = 0.813348    colsample_bytree = 1.0000   Value = -115.5309 
+## elapsed = 1.91   Round = 9   max_depth = 10.0000 eta = 0.2517071 subsample = 0.7000  colsample_bytree = 0.9848041    Value = -287.5922 
+## elapsed = 2.83   Round = 10  max_depth = 10.0000 eta = 0.3000    subsample = 0.9932048   colsample_bytree = 0.7874764    Value = -1325.5548 
+## elapsed = 2.02   Round = 11  max_depth = 9.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.7000   Value = -669.0375 
+## elapsed = 3.52   Round = 12  max_depth = 3.0000  eta = 0.0100    subsample = 0.7000  colsample_bytree = 0.7000   Value = -1271.0771 
+## elapsed = 2.05   Round = 13  max_depth = 9.0000  eta = 0.3000    subsample = 0.9838869   colsample_bytree = 0.9178851    Value = -224.9772 
+## elapsed = 3.59   Round = 14  max_depth = 3.0000  eta = 0.0100    subsample = 0.91239 colsample_bytree = 0.9035874    Value = -789.2112 
+## elapsed = 5.62   Round = 15  max_depth = 5.0000  eta = 0.3000    subsample = 0.9349806   colsample_bytree = 0.9428715    Value = -408.3555 
+## elapsed = 8.15   Round = 16  max_depth = 7.0000  eta = 0.0100    subsample = 0.764681    colsample_bytree = 0.8401223    Value = -657.1144 
+## elapsed = 6.25   Round = 17  max_depth = 6.0000  eta = 0.0100    subsample = 0.935249    colsample_bytree = 0.9840084    Value = -420.3384 
+## elapsed = 9.43   Round = 18  max_depth = 10.0000 eta = 0.0100    subsample = 0.9794313   colsample_bytree = 0.8804068    Value = -645.3962 
+## elapsed = 4.09   Round = 19  max_depth = 10.0000 eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.893692 Value = -644.3185 
+## elapsed = 2.14   Round = 20  max_depth = 8.0000  eta = 0.3000    subsample = 0.9905041   colsample_bytree = 1.0000   Value = -247.0145 
+## elapsed = 4.70   Round = 21  max_depth = 7.0000  eta = 0.2894137 subsample = 0.9933751   colsample_bytree = 0.9129171    Value = -245.2481 
+## elapsed = 3.55   Round = 22  max_depth = 3.0000  eta = 0.0100    subsample = 0.7000  colsample_bytree = 0.9769014    Value = -526.1476 
+## elapsed = 2.10   Round = 23  max_depth = 3.0000  eta = 0.3000    subsample = 0.7000  colsample_bytree = 0.7929499    Value = -562.9228 
+## elapsed = 3.94   Round = 24  max_depth = 10.0000 eta = 0.2146027 subsample = 0.7881165   colsample_bytree = 1.0000   Value = -234.0391 
+## elapsed = 1.62   Round = 25  max_depth = 7.0000  eta = 0.297981  subsample = 0.8150998   colsample_bytree = 0.9463932    Value = -706.6844 
 ## 
 ##  Best Parameters Found: 
 ## Round = 8    max_depth = 9.0000  eta = 0.06766773    subsample = 0.813348    colsample_bytree = 1.0000   Value = -115.5309</code></pre>
@@ -2084,6 +2089,9 @@ xgb_predictions &lt;- predict(xgb_best, xgb_test)
 xgb_rmse &lt;- sqrt(mean((test_data$charges - xgb_predictions)^2))
 cat(&quot;Optimized XGBoost RMSE:&quot;, xgb_rmse, &quot;\n&quot;)</code></pre>
 <pre><code>## Optimized XGBoost RMSE: 76.42326</code></pre>
+<pre class="r"><code># Save the dummyVars object after creating it
+saveRDS(dummy_model, &quot;dummy_model.rds&quot;)</code></pre>
+<pre class="r"><code>save(xgb_best, file = &quot;xgboost_model.RData&quot;)</code></pre>
 </div>
 <div id="xgboost-residuals" class="section level3">
 <h3>3.3.1 XGBoost Residuals</h3>
@@ -2149,11 +2157,11 @@ kable(computation_times, caption = &quot;Computational Time for Model Training&q
 <tbody>
 <tr class="odd">
 <td align="left">Random Forest</td>
-<td align="right">1.11</td>
+<td align="right">1.93</td>
 </tr>
 <tr class="even">
 <td align="left">XGBoost</td>
-<td align="right">5.07</td>
+<td align="right">4.30</td>
 </tr>
 </tbody>
 </table>
