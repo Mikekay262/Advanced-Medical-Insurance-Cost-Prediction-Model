@@ -38,7 +38,7 @@ load(file.path(model_path, "xgboost_model.RData"))  # Loads `xgb_best`
 dummy_model <- readRDS(file.path(model_path, "dummy_model.rds"))  # Loads dummy model
 
 # Correct references to models and variables
-linear_model <- lm_model
+linear_model <- refined_model
 random_forest_model <- rf_optimized
 xgboost_model <- xgb_best
 
@@ -131,7 +131,7 @@ preprocess_data_rf <- function(data) {
 }
 
 # Updated predict_cost function
-predict_cost <- function(input_data, xgb_model, rf_model, lm_model, dummy_model, model_type = "xgboost") {
+predict_cost <- function(input_data, xgb_model, rf_model, refined_model, dummy_model, model_type = "xgboost") {
   # Preprocess input data based on model type
   if (model_type == "xgboost") {
     preprocessed_data <- preprocess_data_xgb(input_data)
@@ -149,7 +149,7 @@ predict_cost <- function(input_data, xgb_model, rf_model, lm_model, dummy_model,
   } else if (model_type == "random_forest") {
     prediction <- predict(rf_model, preprocessed_data)
   } else if (model_type == "linear_model") {
-    prediction <- predict(lm_model, input_data)
+    prediction <- predict(refined_model, input_data)
   } else if (model_type == "dummy") {
     prediction <- predict(dummy_model, newdata = preprocessed_data)
   } else {
@@ -255,9 +255,15 @@ ui <- dashboardPage(
           )
         )
       )
+    ),
+    # Footer Section
+    tags$footer(
+      style = "position: fixed; bottom: 0; width: 100%; padding: 10px; text-align: center;",
+      p("App Version: 1.0.0-dev | Built with R Shiny")
     )
   )
 )
+  
 
 # Server Section
 server <- function(input, output, session) {
@@ -290,21 +296,57 @@ server <- function(input, output, session) {
                          "Random Forest" = "random_forest",
                          "XGBoost" = "xgboost")
     
-    # Corrected function call: Removed encoder argument
+    # Predict using the selected model
     prediction <- predict_cost(user_data,
                                xgb_model = xgboost_model, 
                                rf_model = random_forest_model, 
-                               lm_model = linear_model, 
+                               refined_model = linear_model, 
+                               dummy_model = dummy_model,
                                model_type = model_type)
+    
     return(prediction)
   })
   
-  # Render prediction
+  # Render Prediction Results
   output$prediction <- renderText({
-    cost <- predict_cost_output()
-    paste("Predicted Medical Cost: $", round(cost, 2))
+    paste("Predicted Medical Cost: $", round(predict_cost_output(), 2))
+  })
+  
+  # Render Model Comparison Plot (placeholder, replace with actual logic)
+  output$modelComparisonPlot <- renderPlotly({
+    plot_data <- data.frame(
+      Model = c("Linear Regression", "Random Forest", "XGBoost"),
+      RMSE = c(4637.44, 5189.678, 76.42326)  # Example RMSE values
+    )
+    
+    plot <- ggplot(plot_data, aes(x = Model, y = RMSE, fill = Model)) +
+      geom_bar(stat = "identity") +
+      theme_minimal() +
+      labs(title = "Model Performance Comparison", y = "RMSE")
+    
+    ggplotly(plot)
+  })
+  
+  # Render SHAP Visualizations (placeholder, replace with actual SHAP logic)
+  output$shapPlot <- renderPlot({
+    shap_type <- input$shap_type
+    if (shap_type == "Feature Importance") {
+      # Replace with actual SHAP feature importance logic
+      plot_data <- data.frame(
+        Feature = c("Age", "BMI", "Children", "Smoker"),
+        Importance = c(0.4, 0.3, 0.2, 0.1)
+      )
+      ggplot(plot_data, aes(x = reorder(Feature, -Importance), y = Importance)) +
+        geom_bar(stat = "identity", fill = "blue") +
+        theme_minimal() +
+        labs(title = "Feature Importance", y = "Importance")
+    } else {
+      # Replace with actual SHAP individual explanation logic
+      plot(1, 1, main = "Individual Explanation Placeholder")
+    }
   })
 }
+
 
 # Run the app
 shinyApp(ui = ui, server = server)
