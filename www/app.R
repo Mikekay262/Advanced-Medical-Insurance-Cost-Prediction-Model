@@ -31,11 +31,11 @@ library(plotly)
 library(dplyr)
 
 # Load trained models
-load("linear_model.RData")
-load("random_forest_model.RData")
-load("xgboost_model.RData")
-dummy_model <- readRDS("dummy_model.rds") # Load dummy model
-
+model_path <- "./models/"  # Models should be in the 'models' directory
+load(file.path(model_path, "linear_model.RData"))  # Loads `linear_model`
+load(file.path(model_path, "random_forest_model.RData"))  # Loads `rf_optimized`
+load(file.path(model_path, "xgboost_model.RData"))  # Loads `xgb_best`
+dummy_model <- readRDS(file.path(model_path, "dummy_model.rds"))  # Loads dummy model
 
 # Correct references to models and variables
 linear_model <- lm_model
