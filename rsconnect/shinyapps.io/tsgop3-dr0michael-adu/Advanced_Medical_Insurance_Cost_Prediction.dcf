@@ -1,0 +1,13 @@
+name: Advanced_Medical_Insurance_Cost_Prediction
+title: Advanced_Medical_Insurance_Cost_Prediction
+username: tsgop3-dr0michael-adu
+account: tsgop3-dr0michael-adu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13635763
+bundleId: 9561023
+url: https://tsgop3-dr0michael-adu.shinyapps.io/Advanced_Medical_Insurance_Cost_Prediction/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Advanced-Medical-Insurance-Cost-Prediction-Model-II.html|Advanced-Medical-Insurance-Cost-Prediction-Model-II.pdf|Advanced Medical Insurance Cost Prediction Model II.Rmd
